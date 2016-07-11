@@ -42,7 +42,7 @@ def run_daemon(arg_list):
             available_jobs = job_getter()
             if len(available_jobs) > 0:
                 log_info("Got " + str(len(available_jobs)) + " " + worker_name + " Jobs.")
-                child_threads = float(NO_OF_PROCESSES) / len(available_jobs)
+                child_threads = NO_OF_PROCESSES / len(available_jobs)
                 child_job_args = map(lambda curr_job: (curr_job, child_threads), available_jobs)
                 process_pool = Pool(processes=NO_OF_PROCESSES)
                 process_pool.map(job_processor, child_job_args)
