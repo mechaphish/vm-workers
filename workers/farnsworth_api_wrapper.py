@@ -195,3 +195,17 @@ class CRSAPIWrapper:
         CbPollPerformance.create(poll=target_poll, cs=target_cs, patch_type=patch_type, is_poll_ok=is_poll_ok,
                                  performances=perf_json)
 
+    @staticmethod
+    def create_pov_test_result(cs_fielding, ids_fielding, num_success, test_feedback=None):
+        """
+        Create Pov Test Result.
+        :param cs_fielding: CS Fielding for which the result should be updated.
+        :param ids_fielding: IDS Fielding for which the result should be updated.
+        :param num_success: number of successful throws.
+        :param test_feedback: Feedback from testing, if any.
+        :return:
+        """
+        # TODO: Check this?
+        PovTestResult.create(cs_fielding=cs_fielding, ids_fielding=ids_fielding, num_success=num_success,
+                             test_feedback=test_feedback)
+
