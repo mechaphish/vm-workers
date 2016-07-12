@@ -42,19 +42,8 @@ class CRSAPIWrapper:
         Get all PovTesterJobs Ready to run.
         :return: List of all PovTester Jobs, that need to run
         """
-        # TODO: fill this and verify this.
-        # all_povtester_jobs = list(PovTesterJob.unstarted())
-        all_povtester_jobs = []
+        all_povtester_jobs = list(PovTesterJob.unstarted())
         return all_povtester_jobs
-
-    @staticmethod
-    def get_all_tester_jobs():
-        """
-        Get all Jobs Ready to run.
-        :return: List of all tester jobs, ready to run.
-        """
-        all_tests = list(TesterJob.unstarted())
-        return all_tests
 
     @staticmethod
     def get_binary_path(test_job):

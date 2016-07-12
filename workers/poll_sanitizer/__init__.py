@@ -27,7 +27,7 @@ def process_sanitizer_job(curr_job, num_threads):
             target_cbs_path = os.path.join(os.path.expanduser('~'), 'pollsan_' + str(curr_job.id))
             os.system('mkdir -p ' + str(target_cbs_path))
             # Save all binaries
-            for curr_cb in target_raw_poll.cs.cbns_unpatched():
+            for curr_cb in target_raw_poll.cs.cbns_unpatched:
                 curr_file = str(curr_cb.cs_id) + '_' + str(curr_cb.name)
                 curr_file_path = os.path.join(target_cbs_path, curr_file)
                 fp = open(curr_file_path, 'wb')

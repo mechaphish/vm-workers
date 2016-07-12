@@ -50,10 +50,13 @@ def run_daemon(arg_list):
                 process_pool.join()
                 log_success("Processed " + str(len(available_jobs)) + " " + worker_name + " Jobs.")
                 no_jobs = False
-                # start again
+                # start again from beginning.
+                # This will ensure the if there are any higher priority jobs, we always execute them
+                # before going to lower priority ones
                 break
             else:
                 log_info("No " + worker_name + " Jobs available to run.")
+        # if there are no VM jobs
         if no_jobs:
             time.sleep(poll_time)
 
