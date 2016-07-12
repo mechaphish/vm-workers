@@ -63,15 +63,16 @@ def _get_job_args(curr_pov_test_job):
     return bin_dir, curr_work_dir, pov_file_path
 
 
-def process_povtester_job(curr_job, num_threads):
+def process_povtester_job(curr_job_args):
     """
         Process the provided PoV Tester Job with given number of threads.
-    :param curr_job: pov tester job to process.
-    :param num_threads: number of threads that could be used.
+    :param curr_job_args: (pov tester job to process, number of threads that could be used)
     :return: None
     """
     CRSAPIWrapper.close_connection()
     CRSAPIWrapper.open_connection()
+    curr_job = curr_job_args[0]
+    num_threads = curr_job_args[1]
     target_job = curr_job
     job_id_str = str(curr_job.id)
 

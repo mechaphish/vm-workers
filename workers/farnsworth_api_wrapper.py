@@ -27,13 +27,29 @@ class CRSAPIWrapper:
         """
         target_cs = None
         if target_cs_id is not None:
-            target_cs = ChallengeSet.get(id=target_cs_id)
+            target_cs = CRSAPIWrapper.get_cs_from_id(target_cs_id)
         if target_cs is None:
             all_poll_san_jobs = list(PollSanitizerJob.unstarted())
         else:
             all_poll_san_jobs = list(PollSanitizerJob.unstarted(cs=target_cs))
 
         return all_poll_san_jobs
+
+    @staticmethod
+    def get_all_cb_tester_jobs(target_cs_id=None):
+        """
+        Get all cb tester jobs Ready to run.
+        :param target_cs_id: CS ID for which the Jobs needs to be fetched.
+        :return: List of all tester jobs, ready to run.
+        """
+        target_cs = None
+        if target_cs_id is not None:
+            target_cs = CRSAPIWrapper.get_cs_from_id(target_cs_id)
+        if target_cs is None:
+            all_tests = list(CBTesterJob.unstarted())
+        else:
+            all_tests = list(CBTesterJob.unstarted(cs=target_cs))
+        return all_tests
 
     @staticmethod
     def get_all_poller_jobs(target_cs_id=None):
@@ -44,7 +60,7 @@ class CRSAPIWrapper:
         """
         target_cs = None
         if target_cs_id is not None:
-            target_cs = ChallengeSet.get(id=target_cs_id)
+            target_cs = CRSAPIWrapper.get_cs_from_id(target_cs_id)
         if target_cs is None:
             all_poller_jobs = list(PollerJob.unstarted())
         else:
@@ -60,7 +76,7 @@ class CRSAPIWrapper:
         """
         target_cs = None
         if target_cs_id is not None:
-            target_cs = ChallengeSet.get(id=target_cs_id)
+            target_cs = CRSAPIWrapper.get_cs_from_id(target_cs_id)
         if target_cs is None:
             all_povtester_jobs = list(PovTesterJob.unstarted())
         else:
@@ -96,6 +112,41 @@ class CRSAPIWrapper:
         return filepath
 
     @staticmethod
+    def get_cbs_from_patch_type(target_cs, target_patch_type):
+        """
+            Get all binaries the belong to the provided patched id and cs.
+
+        :param target_cs: CS for which the binaries need to be fetched.
+        :param target_patch_type: Patch type of the CS for which cbns need to be fetched.
+        :return: list of binaries of the provided patch
+        """
+        # This means original cbns
+        if target_patch_type is None:
+            return CRSAPIWrapper.get_unpatched_cbs(target_cs)
+        patch_type_cbns = target_cs.cbns_by_patch_type()
+        if target_patch_type in patch_type_cbns:
+            return patch_type_cbns[target_patch_type]
+        return []
+
+    @staticmethod
+    def get_unpatched_cbs(target_cs):
+        """
+            Get unpatched CBs for a given CS.
+        :param target_cs: ChallengeSet for which unpatched binaries need to be fetched.
+        :return: List of unpatched CBNS of the given CS.
+        """
+        return target_cs.cbns_unpatched
+
+    @staticmethod
+    def get_cs_from_id(target_cs_id):
+        """
+            Get ChallengeSet for given id
+        :param target_cs_id: id for which ChallengeSet need to be fetched.
+        :return:  ChallengeSet
+        """
+        return ChallengeSet.get(ChallengeSet.id == target_cs_id)
+
+    @staticmethod
     def update_testjob_completed(test_job, error_code, result, stdout_out, stderr_out, performance_json):
         """
         Update the provided job as completed.
@@ -129,4 +180,18 @@ class CRSAPIWrapper:
         """
         ValidPoll.create(cs=target_cs, test=test, is_perf_ready=is_perf_ready, round=target_round,
                          blob=poll_xml_content)
+
+    @staticmethod
+    def create_poll_performance(target_poll, target_cs, patch_type, is_poll_ok=True, perf_json=None):
+        """
+        Create a poll performance object.
+        :param target_poll: cbtest poll for which the results should be updated.
+        :param target_cs: CS for which performance need to be updated.
+        :param patch_type: Patch type for which performance needs to be updated.
+        :param is_poll_ok: flag to indicate whether the poll is successful.
+        :param perf_json: performance json.
+        :return: None
+        """
+        CbPollPerformance.create(poll=target_poll, cs=target_cs, patch_type=patch_type, is_poll_ok=is_poll_ok,
+                                 performances=perf_json)
 

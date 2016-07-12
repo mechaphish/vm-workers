@@ -3,11 +3,13 @@ from farnsworth_api_wrapper import CRSAPIWrapper
 from pov_tester import process_povtester_job
 from poll_creator import process_poll_creator_job
 from poll_sanitizer import process_sanitizer_job
+from cb_tester import process_cb_tester_job
 from multiprocessing import Pool, cpu_count
 import time
 import sys
 
 worker_config = [('povtester', CRSAPIWrapper.get_all_povtester_jobs, process_povtester_job),
+                 ('cb_tester', CRSAPIWrapper.get_all_cb_tester_jobs, process_cb_tester_job),
                  ('poll_creator', CRSAPIWrapper.get_all_poller_jobs, process_poll_creator_job),
                  ('poll_sanitizer', CRSAPIWrapper.get_all_poll_sanitizer_jobs, process_sanitizer_job)]
 

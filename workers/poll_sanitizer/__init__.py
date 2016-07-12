@@ -5,18 +5,18 @@ from common_utils.binary_tester import BinaryTester
 import os
 
 
-def process_sanitizer_job(curr_job, num_threads):
+def process_sanitizer_job(curr_job_args):
     """
         Process the provided sanitizer job.
         and update DB with corresponding valid poll, else update the
         raw poll with reason of failure.
-    :param curr_job:  job that needs to run
-    :param num_threads: Number of threads that could be used.
-            (As of now, we ignore this as it is not needed)
+    :param curr_job_args:  (job that needs to run, num threads)
+                            (As of now, we ignore num threads as it is not needed)
     :return: None
     """
     CRSAPIWrapper.close_connection()
     CRSAPIWrapper.open_connection()
+    curr_job = curr_job_args[0]
     target_job = curr_job
 
     if target_job.try_start():
