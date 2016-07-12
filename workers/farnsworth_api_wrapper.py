@@ -19,30 +19,52 @@ class CRSAPIWrapper:
         farnsworth.config.close_dbs()
 
     @staticmethod
-    def get_all_poll_sanitizer_jobs():
+    def get_all_poll_sanitizer_jobs(target_cs_id=None):
         """
         Get all PollSanitizer Jobs Ready to run.
+        :param target_cs_id: CS ID for which the Jobs needs to be fetched.
         :return: List of all PollSanitizer Jobs.
         """
-        all_poller_jobs = list(PollSanitizerJob.unstarted())
-        return all_poller_jobs
+        target_cs = None
+        if target_cs_id is not None:
+            target_cs = ChallengeSet.get(id=target_cs_id)
+        if target_cs is None:
+            all_poll_san_jobs = list(PollSanitizerJob.unstarted())
+        else:
+            all_poll_san_jobs = list(PollSanitizerJob.unstarted(cs=target_cs))
+
+        return all_poll_san_jobs
 
     @staticmethod
-    def get_all_poller_jobs():
+    def get_all_poller_jobs(target_cs_id=None):
         """
         Get all Poller Jobs Ready to run.
+        :param target_cs_id: CS ID for which the Jobs needs to be fetched.
         :return: List of all Poller Jobs.
         """
-        all_poller_jobs = list(PollerJob.unstarted())
+        target_cs = None
+        if target_cs_id is not None:
+            target_cs = ChallengeSet.get(id=target_cs_id)
+        if target_cs is None:
+            all_poller_jobs = list(PollerJob.unstarted())
+        else:
+            all_poller_jobs = list(PollerJob.unstarted(cs=target_cs))
         return all_poller_jobs
 
     @staticmethod
-    def get_all_povtester_jobs():
+    def get_all_povtester_jobs(target_cs_id=None):
         """
         Get all PovTesterJobs Ready to run.
+        :param target_cs_id: CS ID for which the Jobs needs to be fetched.
         :return: List of all PovTester Jobs, that need to run
         """
-        all_povtester_jobs = list(PovTesterJob.unstarted())
+        target_cs = None
+        if target_cs_id is not None:
+            target_cs = ChallengeSet.get(id=target_cs_id)
+        if target_cs is None:
+            all_povtester_jobs = list(PovTesterJob.unstarted())
+        else:
+            all_povtester_jobs = list(PovTesterJob.unstarted(cs=target_cs))
         return all_povtester_jobs
 
     @staticmethod

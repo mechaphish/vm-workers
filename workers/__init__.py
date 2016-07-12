@@ -13,24 +13,42 @@ worker_config = [('povtester', CRSAPIWrapper.get_all_povtester_jobs, process_pov
 
 NO_OF_PROCESSES = cpu_count()
 POLL_TIME = 1  # Time to sleep, if no jobs are available to run
+# only for testing.
+# Change this to false for testing.
+EXIT_ON_WRONG_CS_ID = True
 
 
 def run_daemon(arg_list):
     global NO_OF_PROCESSES
     global POLL_TIME
+    target_cs_id = None
 
     if len(arg_list) > 1:
         try:
-            no_of_process = int(arg_list[1])
+            target_cs_id = int(arg_list[1])
+            log_info("Handling Jobs for CS ID:" + str(target_cs_id))
+        except ValueError:
+            log_failure("Unable to parse the provided argument into CS ID:" + str(arg_list[1]))
+            # Ignore the error
+            pass
+
+    if len(arg_list) > 2:
+        try:
+            no_of_process = int(arg_list[2])
         except ValueError:
             no_of_process = cpu_count()
         NO_OF_PROCESSES = no_of_process
-    if len(arg_list) > 2:
+    if len(arg_list) > 3:
         try:
-            poll_time = int(arg_list[2])
+            poll_time = int(arg_list[3])
         except ValueError:
             poll_time = POLL_TIME
         POLL_TIME = poll_time
+    if EXIT_ON_WRONG_CS_ID and target_cs_id is None:
+        log_error("Exiting, without scheduling any jobs as no valid CS ID is provided.")
+        return
+    elif target_cs_id is None:
+        log_info("Will be running infinitely fetching Jobs for all CS.")
     while True:
         CRSAPIWrapper.open_connection()
         no_jobs = True
@@ -39,7 +57,7 @@ def run_daemon(arg_list):
             job_getter = curr_worker_config[1]
             job_processor = curr_worker_config[2]
             log_info("Trying to get " + worker_name + " Jobs.")
-            available_jobs = job_getter()
+            available_jobs = job_getter(target_cs_id=target_cs_id)
             if len(available_jobs) > 0:
                 log_info("Got " + str(len(available_jobs)) + " " + worker_name + " Jobs.")
                 child_threads = NO_OF_PROCESSES / len(available_jobs)
@@ -56,10 +74,16 @@ def run_daemon(arg_list):
                 break
             else:
                 log_info("No " + worker_name + " Jobs available to run.")
+
         # if there are no VM jobs
         if no_jobs:
+            # If this is supposed to take care of only one CS.
+            # exit the while True loop.
+            # so that the worker knows this VM is done.
+            if target_cs_id is not None:
+                break
             time.sleep(poll_time)
 
 if __name__ == "__main__":
-    # Command line arguments: workers.py <NO_OF_PROCESSES> <POLL_TIME_IN_SECONDS>
+    # Command line arguments: workers.py <target_cs_id> <NO_OF_PROCESSES> <POLL_TIME_IN_SECONDS>
     run_daemon(sys.argv)
