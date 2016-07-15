@@ -1,8 +1,27 @@
 from ..farnsworth_api_wrapper import CRSAPIWrapper
+from farnsworth.actions import cfe_poll_from_xml, Write
+from farnsworth.models import Crash
 from common_utils.simple_logging import log_success, log_failure, log_error, log_info
 from common_utils.poll_sanitizer import sanitize_pcap_poll
 from common_utils.binary_tester import BinaryTester
 import os
+
+
+def get_write_data_from_poll(xml_blob):
+    """
+        Get Data from all write tags from poll xml
+    :param xml_blob: Xml blob from which xml need to be fetched.
+    :return: Write data as string.
+    """
+    cfe_poll_xml = cfe_poll_from_xml(xml_blob)
+    all_writes = filter(lambda curr_action: isinstance(curr_action, Write), cfe_poll_xml.actions)
+    write_data = None
+    if len(all_writes) > 0:
+        for i in range(len(all_writes)):
+            curr_write = all_writes[i]
+            for curr_data in curr_write.data_vars:
+                write_data += str(curr_data.data)
+    return write_data
 
 
 def process_sanitizer_job(curr_job_args):
@@ -49,6 +68,12 @@ def process_sanitizer_job(curr_job_args):
                 target_raw_poll.is_crash = True
                 log_error("PollSanitizerJob:" + str(curr_job.id) + ", Lead to Crash. Someone attacked us.")
                 target_raw_poll.save()
+                # Create a crash object.
+                log_info("Getting Crashing Input from Xml.")
+                crashing_input = get_write_data_from_poll(target_raw_poll.blob)
+                if crashing_input is not None:
+                    log_info("Updating crashes Table.")
+                    Crash.create(blob=crashing_input, cs=target_raw_poll.cs, job=curr_job)
             elif target_result == BinaryTester.FAIL_RESULT:
                 # set failed to true
                 target_raw_poll.is_failed = True

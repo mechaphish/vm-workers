@@ -28,9 +28,7 @@ def _get_all_cbns(cs_fielded_obj):
     :param cs_fielded_obj: fielded cs for which we need to get the CBns for.
     :return: list of cbs of the provided fielded cs.
     """
-    # TODO: fill this
-    ret = []
-    return ret
+    return cs_fielded_obj.cbns
 
 
 def _get_ids_rules_obj(ids_fielding_obj):
@@ -39,9 +37,7 @@ def _get_ids_rules_obj(ids_fielding_obj):
     :param ids_fielding_obj: fielded IDS for which we need to get rules for.
     :return: ids_rules obj of the provided ids_fielding_obj
     """
-    # TODO: fill this
-    ids_rules_obj = None
-    return ids_rules_obj
+    return ids_fielding_obj.ids_rule
 
 
 def _get_job_args(curr_pov_test_job):
