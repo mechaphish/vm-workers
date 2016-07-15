@@ -1,0 +1,7 @@
+#!/usr/bin/env python
+
+import test_vm_worker
+import sys
+
+# start running VM worker
+test_vm_worker.run_daemon(sys.argv)
