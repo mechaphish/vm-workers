@@ -18,7 +18,7 @@ def _generate_poll(curr_poller_job):
     bin_dir_path = os.path.join(os.path.expanduser("~"), 'pollcreator_' + str(curr_poller_job.id))
     os.system('mkdir -p ' + bin_dir_path)
     # get original binary
-    un_patched_bins = curr_poller_job.cbn.cs.cbns_unpatched
+    un_patched_bins = curr_poller_job.cbn.cs.cbns_original
     for curr_cb in un_patched_bins:
         curr_file = str(curr_cb.cs_id) + '_' + str(curr_cb.name)
         curr_file_path = os.path.join(bin_dir_path, curr_file)

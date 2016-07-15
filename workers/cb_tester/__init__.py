@@ -18,7 +18,6 @@ def process_cb_tester_job(job_args):
     if curr_cb_test_job.try_start():
         log_info("Trying to process cb-tester Job:" + str(curr_job_id))
         try:
-            # TODO: Change this for unique paths
             target_dir = get_unique_dir(os.path.expanduser("~"), "cb_tester_" + str(curr_job_id))
 
             # save binaries and xml

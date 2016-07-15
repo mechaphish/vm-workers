@@ -1,7 +1,8 @@
 import os
 from dotenv import load_dotenv
 load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
-from farnsworth.models import *
+from farnsworth.models import NetworkPollSanitizerJob, CBTesterJob, PollCreatorJob, PovTesterJob, ChallengeSet, \
+                              ValidPoll, CBPollPerformance, PovTestResult, TesterResult
 import farnsworth.config
 
 
@@ -29,9 +30,9 @@ class CRSAPIWrapper:
         if target_cs_id is not None:
             target_cs = CRSAPIWrapper.get_cs_from_id(target_cs_id)
         if target_cs is None:
-            all_poll_san_jobs = list(PollSanitizerJob.unstarted())
+            all_poll_san_jobs = list(NetworkPollSanitizerJob.unstarted())
         else:
-            all_poll_san_jobs = list(PollSanitizerJob.unstarted(cs=target_cs))
+            all_poll_san_jobs = list(NetworkPollSanitizerJob.unstarted(cs=target_cs))
 
         return all_poll_san_jobs
 
@@ -62,9 +63,9 @@ class CRSAPIWrapper:
         if target_cs_id is not None:
             target_cs = CRSAPIWrapper.get_cs_from_id(target_cs_id)
         if target_cs is None:
-            all_poller_jobs = list(PollerJob.unstarted())
+            all_poller_jobs = list(PollCreatorJob.unstarted())
         else:
-            all_poller_jobs = list(PollerJob.unstarted(cs=target_cs))
+            all_poller_jobs = list(PollCreatorJob.unstarted(cs=target_cs))
         return all_poller_jobs
 
     @staticmethod
@@ -192,7 +193,7 @@ class CRSAPIWrapper:
         :param perf_json: performance json.
         :return: None
         """
-        CbPollPerformance.create(poll=target_poll, cs=target_cs, patch_type=patch_type, is_poll_ok=is_poll_ok,
+        CBPollPerformance.create(poll=target_poll, cs=target_cs, patch_type=patch_type, is_poll_ok=is_poll_ok,
                                  performances=perf_json)
 
     @staticmethod
