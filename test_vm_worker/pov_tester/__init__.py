@@ -110,12 +110,13 @@ def process_povtester_job(curr_job_args):
     job_id_str = str(curr_job.id)
 
     if target_job.try_start():
+        curr_work_dir = None
         try:
+            job_bin_dir, curr_work_dir, pov_file_path, ids_rules_path = _get_job_args(curr_job)
             job_id_str = str(curr_job.id)
             log_info("Trying to run PovTesterJob:" + job_id_str)
             all_child_process_args = []
 
-            job_bin_dir, curr_work_dir, pov_file_path, ids_rules_path = _get_job_args(curr_job)
             for i in range(NUM_THROWS):
                 all_child_process_args.append((job_bin_dir, pov_file_path, ids_rules_path))
 
@@ -133,14 +134,16 @@ def process_povtester_job(curr_job_args):
                          job_id_str)
                 for curr_child_arg in all_child_process_args:
                     all_results.append(_test_pov(curr_child_arg))
-            # clean up
-            os.system('rm -rf ' + curr_work_dir)
+
             throws_passed = len(filter(lambda x: x, all_results))
             CRSAPIWrapper.create_pov_test_result(curr_job.target_cs_fielding, curr_job.target_ids_fielding,
                                                  throws_passed)
             log_success("Done Processing PovTesterJob:" + job_id_str)
         except Exception as e:
             log_error("Error Occured while processing PovTesterJob:" + job_id_str + ". Error:" + str(e))
+        # clean up
+        if curr_work_dir is not None:
+            os.system('rm -rf ' + curr_work_dir)
         target_job.completed()
     else:
         log_failure("Ignoring PovTesterJob:" + job_id_str + " as we failed to mark it busy.")

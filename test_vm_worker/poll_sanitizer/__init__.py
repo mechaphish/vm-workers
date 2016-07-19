@@ -39,11 +39,12 @@ def process_sanitizer_job(curr_job_args):
     target_job = curr_job
 
     if target_job.try_start():
+        target_cbs_path = os.path.join(os.path.expanduser('~'), 'pollsan_' + str(curr_job.id))
         try:
             log_info("Trying to process PollSanitizerJob:" + str(target_job.id))
             # Create folder to save all binaries that belong to current CS.
             target_raw_poll = curr_job.raw_poll
-            target_cbs_path = os.path.join(os.path.expanduser('~'), 'pollsan_' + str(curr_job.id))
+
             os.system('mkdir -p ' + str(target_cbs_path))
             # Save all binaries
             for curr_cb in target_raw_poll.cs.cbns_original:
@@ -61,8 +62,7 @@ def process_sanitizer_job(curr_job_args):
                                                                                    str(curr_job.id))
             target_raw_poll.sanitized = True
             target_raw_poll.save()
-            # clean up
-            os.system('rm -rf ' + str(target_cbs_path))
+
             if target_result == BinaryTester.CRASH_RESULT:
                 # set crash to true
                 target_raw_poll.is_crash = True
@@ -90,6 +90,8 @@ def process_sanitizer_job(curr_job_args):
 
         except Exception as e:
             log_error("Error Occured while processing PollerSanitizerJob:" + str(target_job.id) + ". Error:" + str(e))
+        # clean up
+        os.system('rm -rf ' + str(target_cbs_path))
         target_job.completed()
     else:
         log_failure("Ignoring PollerSanitizerJob:" + str(target_job.id) + " as we failed to mark it busy.")
