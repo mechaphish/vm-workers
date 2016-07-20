@@ -1,6 +1,5 @@
 from ..farnsworth_api_wrapper import CRSAPIWrapper
 from farnsworth.actions import cfe_poll_from_xml, Write
-from farnsworth.models import Crash
 from common_utils.simple_logging import log_success, log_failure, log_error, log_info
 from common_utils.poll_sanitizer import sanitize_pcap_poll
 from common_utils.binary_tester import BinaryTester
@@ -66,14 +65,9 @@ def process_sanitizer_job(curr_job_args):
             if target_result == BinaryTester.CRASH_RESULT:
                 # set crash to true
                 target_raw_poll.is_crash = True
-                log_error("PollSanitizerJob:" + str(curr_job.id) + ", Lead to Crash. Someone attacked us.")
+                log_error("PollSanitizerJob:" + str(curr_job.id) + ", Lead to Crash. Someone attacked us, "
+                                                                   "it will be synced in network poll creator")
                 target_raw_poll.save()
-                # Create a crash object.
-                log_info("Getting Crashing Input from Xml.")
-                crashing_input = get_write_data_from_poll(target_raw_poll.blob)
-                if crashing_input is not None:
-                    log_info("Updating crashes Table.")
-                    Crash.create(blob=crashing_input, cs=target_raw_poll.cs, job=curr_job)
             elif target_result == BinaryTester.FAIL_RESULT:
                 # set failed to true
                 target_raw_poll.is_failed = True
