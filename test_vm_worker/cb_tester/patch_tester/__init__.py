@@ -199,4 +199,4 @@ class PatchTester(object):
         else:
             log_failure("Error occurred while computing performance values for one or more perf keys.")
 
-        return {"perf": [{"median": perfs_median}, {"variance": perfs_variance}]}
+        return {"perf": {"median": perfs_median, "variance": perfs_variance}}
