@@ -17,7 +17,7 @@ def _test_pov(thread_arg):
     bin_folder = thread_arg[0]
     pov_file = thread_arg[1]
     ids_rules = thread_arg[2]
-    bin_tester = BinaryTester(bin_folder, pov_file, is_pov=True, is_cfe=True, standlone=True, ids_rules=ids_rules)
+    bin_tester = BinaryTester(bin_folder, pov_file, is_pov=True, is_cfe=True, standalone=True, ids_rules=ids_rules)
     ret_code, _, _ = bin_tester.test_cb_binary()
     return ret_code == 0
 

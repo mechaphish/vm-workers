@@ -27,7 +27,7 @@ def bin_tester(bin_dir, poll_xml):
     :param poll_xml: path of poll xml
     :return: (poll_xml, ret_code, has_perf, final_result, perf_json)
     """
-    tester_obj = BinaryTester(bin_dir, poll_xml, standlone=True)
+    tester_obj = BinaryTester(bin_dir, poll_xml, standalone=True)
     ret_code, output_text, _ = tester_obj.test_cb_binary()
     has_perf, final_result, perf_json = BinaryTester.parse_cb_test_out(output_text)
     return poll_xml, ret_code, has_perf, final_result, perf_json
