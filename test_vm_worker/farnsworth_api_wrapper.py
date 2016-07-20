@@ -197,16 +197,16 @@ class CRSAPIWrapper:
                                  performances=perf_json)
 
     @staticmethod
-    def create_pov_test_result(cs_fielding, ids_fielding, num_success, test_feedback=None):
+    def create_pov_test_result(target_exploit, cs_fielding, ids_fielding, num_success, test_feedback=None):
         """
         Create Pov Test Result.
+        :param: target_exploit: Target exploit for which POV Test result has been created.
         :param cs_fielding: CS Fielding for which the result should be updated.
         :param ids_fielding: IDS Fielding for which the result should be updated.
         :param num_success: number of successful throws.
         :param test_feedback: Feedback from testing, if any.
         :return:
         """
-        # TODO: Check this?
-        PovTestResult.create(cs_fielding=cs_fielding, ids_fielding=ids_fielding, num_success=num_success,
-                             test_feedback=test_feedback)
+        PovTestResult.create(exploit=target_exploit, cs_fielding=cs_fielding, ids_fielding=ids_fielding,
+                             num_success=num_success, test_feedback=test_feedback)
 

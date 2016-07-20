@@ -37,7 +37,9 @@ def _get_ids_rules_obj(ids_fielding_obj):
     :param ids_fielding_obj: fielded IDS for which we need to get rules for.
     :return: ids_rules obj of the provided ids_fielding_obj
     """
-    return ids_fielding_obj.ids_rule
+    if ids_fielding_obj is not None:
+        return ids_fielding_obj.ids_rule
+    return None
 
 
 def _get_job_args(curr_pov_test_job):
@@ -46,7 +48,6 @@ def _get_job_args(curr_pov_test_job):
     :param curr_pov_test_job: pov test job for which arguments needs to be fetched.
     :return: (bin_dir, work_dir, pov_file_path) tuple
     """
-    # TODO: Verify this
     cs_fielding_obj = curr_pov_test_job.target_cs_fielding
     pov_test_job_id = curr_pov_test_job.id
     # Get all binaries in
@@ -57,42 +58,50 @@ def _get_job_args(curr_pov_test_job):
     pov_dir = os.path.join(curr_work_dir, 'pov_dir')
     ids_dir = os.path.join(curr_work_dir, 'ids_rules')
 
-    # set up binaries
-    # Save CBNs into the bin dir
-    os.system('mkdir -p ' + str(bin_dir))
-    for curr_cb in all_cbns:
-        curr_file = str(curr_cb.cs_id) + '_' + str(curr_cb.name)
-        curr_file_path = os.path.join(bin_dir, curr_file)
-        fp = open(curr_file_path, 'wb')
-        fp.write(curr_cb.blob)
+    try:
+
+        # set up binaries
+        # Save CBNs into the bin dir
+        os.system('mkdir -p ' + str(bin_dir))
+        for curr_cb in all_cbns:
+            curr_file = str(curr_cb.cs_id) + '_' + str(curr_cb.name)
+            curr_file_path = os.path.join(bin_dir, curr_file)
+            fp = open(curr_file_path, 'wb')
+            fp.write(curr_cb.blob)
+            fp.close()
+            os.chmod(curr_file_path, 0o777)
+
+        pov_file_path = None
+
+        # set up povs
+        # save povs into pov directory
+        os.system('mkdir -p ' + str(pov_dir))
+        target_exploit_obj = curr_pov_test_job.target_exploit
+        pov_file_path = os.path.join(pov_dir, str(curr_pov_test_job.id) + '.pov')
+        fp = open(pov_file_path, 'w')
+        fp.write(str(target_exploit_obj.blob))
         fp.close()
-        os.chmod(curr_file_path, 0o777)
+        os.chmod(pov_file_path, 0o777)
 
-    pov_file_path = None
-
-    # set up povs
-    # save povs into pov directory
-    os.system('mkdir -p ' + str(pov_dir))
-    target_exploit_obj = curr_pov_test_job.target_exploit
-    pov_file_path = os.path.join(pov_dir, str(curr_pov_test_job.id) + '.pov')
-    fp = open(pov_file_path, 'w')
-    fp.write(target_exploit_obj.blob)
-    fp.close()
-    os.chmod(pov_file_path, 0o777)
-
-    ids_file_path = None
-    # set up ids rules
-    # save ids rules into directory
-    os.system('mkdir -p ' + str(ids_dir))
-    ids_rules_obj = _get_ids_rules_obj(curr_pov_test_job.target_ids_fielding)
-    # if we have non-empty ids rules?
-    if ids_rules_obj is not None and ids_rules_obj.rules is not None and len(ids_rules_obj.rules.strip()) > 0:
-        ids_file_path = os.path.join(ids_dir, str(curr_pov_test_job.id) + '_ids.rules')
-        fp = open(ids_file_path, 'w')
-        fp.write(str(ids_rules_obj.rules))
-        fp.close()
-        os.chmod(ids_file_path, 0o777)
-
+        ids_file_path = None
+        # set up ids rules
+        # save ids rules into directory
+        os.system('mkdir -p ' + str(ids_dir))
+        ids_rules_obj = _get_ids_rules_obj(curr_pov_test_job.target_ids_fielding)
+        # if we have non-empty ids rules?
+        if ids_rules_obj is not None and ids_rules_obj.rules is not None and len(ids_rules_obj.rules.strip()) > 0:
+            ids_file_path = os.path.join(ids_dir, str(curr_pov_test_job.id) + '_ids.rules')
+            fp = open(ids_file_path, 'w')
+            fp.write(str(ids_rules_obj.rules))
+            fp.close()
+            os.chmod(ids_file_path, 0o777)
+    except Exception as e:
+        # clean up
+        if curr_work_dir is not None:
+            os.system('rm -rf ' + curr_work_dir)
+        log_error("Error occurred while trying to setup working directory for PovTesterJob:" + str(pov_test_job_id) +
+                  ", Error:" + str(e))
+        raise e
     return bin_dir, curr_work_dir, pov_file_path, ids_file_path
 
 
@@ -136,8 +145,8 @@ def process_povtester_job(curr_job_args):
                     all_results.append(_test_pov(curr_child_arg))
 
             throws_passed = len(filter(lambda x: x, all_results))
-            CRSAPIWrapper.create_pov_test_result(curr_job.target_cs_fielding, curr_job.target_ids_fielding,
-                                                 throws_passed)
+            CRSAPIWrapper.create_pov_test_result(curr_job.target_exploit, curr_job.target_cs_fielding,
+                                                 curr_job.target_ids_fielding, throws_passed)
             log_success("Done Processing PovTesterJob:" + job_id_str)
         except Exception as e:
             log_error("Error Occured while processing PovTesterJob:" + job_id_str + ". Error:" + str(e))
