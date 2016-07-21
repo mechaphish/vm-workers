@@ -102,7 +102,7 @@ class PatchTester(object):
                     # single threaded
                     # test each poll file individually.
                     for i in range(PatchTester.NUM_TEST_TIME):
-                        self.test_results.append(bin_tester_wrapper(self.bin_directory, self.poll_xml_path))
+                        self.test_results.append(bin_tester_wrapper((self.bin_directory, self.poll_xml_path)))
 
                     log_success("Tested:" + self.bin_directory + " with poll xml dir:" + self.poll_xml_path +
                                 " in single threaded mode for " + str(PatchTester.NUM_TEST_TIME) +
