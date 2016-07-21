@@ -37,7 +37,7 @@ def process_cb_tester_job(job_args):
                 os.chmod(bin_path, 0o777)
 
             # save the xml
-            xml_file_path = os.path.join(xml_dir, str(curr_cb_test_job.poll.id))
+            xml_file_path = os.path.join(xml_dir, str(curr_cb_test_job.poll.id) + '.xml')
             fp = open(xml_file_path, 'w')
             fp.write(str(curr_cb_test_job.poll.blob))
             fp.close()
@@ -55,6 +55,9 @@ def process_cb_tester_job(job_args):
             if curr_patch_tester.are_polls_ok():
                 is_poll_ok = True
                 perf_measurements = curr_patch_tester.get_perf_measures()
+            else:
+                log_failure("CS:" + str(curr_cb_test_job.target_cs.id) + ", Patch Type:" +
+                            str(curr_cb_test_job.patch_type) + " failed for Poll:" + str(curr_cb_test_job.poll.id))
             # update performance measurements.
             CRSAPIWrapper.create_poll_performance(curr_cb_test_job.poll, curr_cb_test_job.target_cs,
                                                   curr_cb_test_job.patch_type, is_poll_ok=is_poll_ok,
@@ -62,7 +65,8 @@ def process_cb_tester_job(job_args):
             log_success("Processed cb-tester Job:" + str(curr_job_id))
             # mark job as completed.
         except Exception as e:
-            log_failure("Exception occurred while trying to process cb_tester job:" + str(curr_job_id))
+            log_failure("Exception occurred while trying to process cb_tester job:" + str(curr_job_id) +
+                        ", Exception:" + str(e))
         curr_cb_test_job.completed()
     else:
         log_info("Unable to start job:" + str(curr_job_id) + ". Ignoring")

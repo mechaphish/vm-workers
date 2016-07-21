@@ -136,7 +136,7 @@ class CRSAPIWrapper:
         :param target_cs: ChallengeSet for which unpatched binaries need to be fetched.
         :return: List of unpatched CBNS of the given CS.
         """
-        return target_cs.cbns_unpatched
+        return target_cs.cbns_original
 
     @staticmethod
     def get_cs_from_id(target_cs_id):
