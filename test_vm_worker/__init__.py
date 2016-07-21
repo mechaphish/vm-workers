@@ -37,6 +37,9 @@ def run_daemon(arg_list):
             pass
     if len(arg_list) > 2:
         target_job_type = arg_list[2]
+        log_info("Provided Job Type:" + str(target_job_type))
+    else:
+        log_failure("No job type provided")
 
     if len(arg_list) > 3:
         try:
@@ -45,6 +48,9 @@ def run_daemon(arg_list):
             log_failure("Unable to parse the provided argument into number of jobs:" + str(arg_list[3]))
             # default, number of jobs
             max_num_jobs = 1000
+            pass
+    else:
+        log_failure("No max number of jobs provided, defaulting to:" + str(max_num_jobs))
 
     # Ignore this
     """if len(arg_list) > 2:
