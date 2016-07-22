@@ -41,7 +41,8 @@ def _generate_poll(curr_poller_job):
                                                                                 optional_prefix=str(curr_poller_job.id) +
                                                                                                 '_gen',
                                                                                 log_suffix='For PollCreator Job:' +
-                                                                                           str(curr_poller_job.id))
+                                                                                           str(curr_poller_job.id),
+                                                                                afl_input=True)
         # set the flag so that, we will not try again.
         target_test.poll_created = True
         target_test.save()
