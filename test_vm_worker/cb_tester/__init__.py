@@ -17,12 +17,13 @@ def process_cb_tester_job(job_args):
     curr_job_id = str(curr_cb_test_job.id)
     if curr_cb_test_job.try_start():
         log_info("Trying to process cb-tester Job:" + str(curr_job_id))
+        target_dir = get_unique_dir(os.path.expanduser("~"), "cb_tester_" + str(curr_job_id))
         try:
-            target_dir = get_unique_dir(os.path.expanduser("~"), "cb_tester_" + str(curr_job_id))
-
             # save binaries and xml
             bin_dir = os.path.join(target_dir, "bin")
             xml_dir = os.path.join(target_dir, "poll_xml")
+            ids_rule_fp = None
+            ids_rule = None
 
             os.system('mkdir -p ' + str(bin_dir))
             os.system('mkdir -p ' + str(xml_dir))
@@ -31,10 +32,20 @@ def process_cb_tester_job(job_args):
             for curr_cb in CRSAPIWrapper.get_cbs_from_patch_type(curr_cb_test_job.target_cs,
                                                                  curr_cb_test_job.patch_type):
                 bin_path = os.path.join(bin_dir, curr_cb.name)
+                ids_rule = curr_cb.ids_rule
                 fp = open(bin_path, 'wb')
                 fp.write(curr_cb.blob)
                 fp.close()
                 os.chmod(bin_path, 0o777)
+
+            # Save IDS rules
+            if ids_rule is not None and ids_rule.rules is not None:
+                ids_dir = os.path.join(target_dir, "ids_dir")
+                os.system('mkdir -p ' + ids_dir)
+                ids_rule_fp = os.path.join(ids_dir, "ids.rules")
+                fp = open(ids_rule_fp, "w")
+                fp.write(str(ids_rule.rules))
+                fp.close()
 
             # save the xml
             xml_file_path = os.path.join(xml_dir, str(curr_cb_test_job.poll.id) + '.xml')
@@ -43,11 +54,8 @@ def process_cb_tester_job(job_args):
             fp.close()
 
             # Test the poll
-            curr_patch_tester = PatchTester(bin_dir, xml_file_path, num_threads=no_process)
+            curr_patch_tester = PatchTester(bin_dir, xml_file_path, ids_rule_fp, num_threads=no_process)
             curr_patch_tester.test()
-
-            # clean up
-            os.system('rm -rf ' + target_dir)
 
             # get all perfs if poll is ok.
             perf_measurements = {}
@@ -68,6 +76,8 @@ def process_cb_tester_job(job_args):
             log_failure("Exception occurred while trying to process cb_tester job:" + str(curr_job_id) +
                         ", Exception:" + str(e))
         curr_cb_test_job.completed()
+        # clean up
+        os.system('rm -rf ' + target_dir)
     else:
         log_info("Unable to start job:" + str(curr_job_id) + ". Ignoring")
     CRSAPIWrapper.close_connection()

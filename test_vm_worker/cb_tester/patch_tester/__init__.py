@@ -20,14 +20,15 @@ def get_unique_dir(base_dir, choice_dir):
     return target_dir
 
 
-def bin_tester(bin_dir, poll_xml):
+def bin_tester(bin_dir, poll_xml, ids_file_fp):
     """
         Test the binaries in directory with a poll xml
     :param bin_dir: directory containing binaries.
     :param poll_xml: path of poll xml
+    :param ids_file_fp: Path to the ids rules file
     :return: (poll_xml, ret_code, has_perf, final_result, perf_json)
     """
-    tester_obj = BinaryTester(bin_dir, poll_xml, standalone=True)
+    tester_obj = BinaryTester(bin_dir, poll_xml, standalone=True, ids_rules=ids_file_fp)
     ret_code, output_text, _ = tester_obj.test_cb_binary()
     has_perf, final_result, perf_json = BinaryTester.parse_cb_test_out(output_text)
     return poll_xml, ret_code, has_perf, final_result, perf_json
@@ -53,17 +54,19 @@ class PatchTester(object):
     # To get nice median :)
     NUM_TEST_TIME = 11
 
-    def __init__(self, bin_directory, poll_xml_path, num_threads=1):
+    def __init__(self, bin_directory, poll_xml_path, ids_rule_fp, num_threads=1):
         """
             Create a patch tester object.
         :param bin_directory: directory containing binaries to be tested.
         :param poll_xml_path: Xml path of the poll to test.
+        :param ids_rule_fp: Path to the IDS rules for the binary
         :param num_threads: number of threads.
         :return: None
         """
         self.bin_directory = bin_directory
         self.poll_xml_path = poll_xml_path
         self.num_threads = num_threads
+        self.ids_rules_fp = ids_rule_fp
         # Sanity
         if self.num_threads > cpu_count():
             self.num_threads = cpu_count() - 1
@@ -85,7 +88,7 @@ class PatchTester(object):
                     # prepare all args
                     thread_args = []
                     for i in range(PatchTester.NUM_TEST_TIME):
-                        thread_args.append((self.bin_directory, self.poll_xml_path))
+                        thread_args.append((self.bin_directory, self.poll_xml_path, self.ids_rules_fp))
                     # map to process poll
                     process_pool = Pool(processes=self.num_threads)
                     self.test_results = process_pool.map(bin_tester_wrapper, thread_args)
@@ -102,7 +105,8 @@ class PatchTester(object):
                     # single threaded
                     # test each poll file individually.
                     for i in range(PatchTester.NUM_TEST_TIME):
-                        self.test_results.append(bin_tester_wrapper((self.bin_directory, self.poll_xml_path)))
+                        self.test_results.append(bin_tester_wrapper((self.bin_directory, self.poll_xml_path,
+                                                                     self.ids_rules_fp)))
 
                     log_success("Tested:" + self.bin_directory + " with poll xml dir:" + self.poll_xml_path +
                                 " in single threaded mode for " + str(PatchTester.NUM_TEST_TIME) +
