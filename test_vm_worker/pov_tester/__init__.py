@@ -1,10 +1,8 @@
 from ..farnsworth_api_wrapper import CRSAPIWrapper
 from common_utils.binary_tester import BinaryTester
-from multiprocessing import Pool, cpu_count
+from multiprocessing.dummy import Pool as ThreadPool
 from common_utils.simple_logging import log_info, log_success, log_failure, log_error
 import os
-import sys
-
 NUM_THROWS = 12
 
 
@@ -136,8 +134,10 @@ def process_povtester_job(curr_job_args):
             if num_threads > 1:
                 log_info("Running in multi-threaded mode with:" + str(num_threads) + " threads. For PovTesterJob:" +
                          job_id_str)
-                process_pool = Pool(processes=num_threads)
-                all_results = process_pool.map(_test_pov, all_child_process_args)
+                thread_pool = ThreadPool(processes=num_threads)
+                all_results = thread_pool.map(_test_pov, all_child_process_args)
+                thread_pool.close()
+                thread_pool.join()
             else:
                 log_info("Running in single threaded mode. For PovTesterJob:" +
                          job_id_str)
