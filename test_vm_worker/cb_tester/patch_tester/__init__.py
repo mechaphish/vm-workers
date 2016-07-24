@@ -1,5 +1,6 @@
 import os
-from multiprocessing import Pool, cpu_count
+from multiprocessing import cpu_count
+from multiprocessing.dummy import Pool as ThreadPool
 from common_utils.simple_logging import log_failure, log_info, log_success
 from common_utils.binary_tester import BinaryTester
 
@@ -90,13 +91,13 @@ class PatchTester(object):
                     for i in range(PatchTester.NUM_TEST_TIME):
                         thread_args.append((self.bin_directory, self.poll_xml_path, self.ids_rules_fp))
                     # map to process poll
-                    process_pool = Pool(processes=self.num_threads)
-                    self.test_results = process_pool.map(bin_tester_wrapper, thread_args)
+                    thread_pool = ThreadPool(processes=self.num_threads)
+                    self.test_results = thread_pool.map(bin_tester_wrapper, thread_args)
                     log_success("Tested:" + self.bin_directory + " with poll xml:" + self.poll_xml_path +
                                 " with " + str(self.num_threads) + " threads for " + str(PatchTester.NUM_TEST_TIME) +
                                 " times")
-                    process_pool.terminate()
-                    process_pool.join()
+                    thread_pool.close()
+                    thread_pool.join()
 
                 else:
                     log_info("Trying to test:" + self.bin_directory + " with poll xml:" + self.poll_xml_path +
