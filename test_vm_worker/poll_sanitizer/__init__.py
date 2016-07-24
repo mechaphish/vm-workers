@@ -32,7 +32,7 @@ def process_sanitizer_job(curr_job_args):
                             (As of now, we ignore num threads as it is not needed)
     :return: None
     """
-    CRSAPIWrapper.close_connection()
+    # CRSAPIWrapper.close_connection()
     CRSAPIWrapper.open_connection()
     curr_job = curr_job_args[0]
     target_job = curr_job

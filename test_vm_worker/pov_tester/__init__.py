@@ -109,7 +109,7 @@ def process_povtester_job(curr_job_args):
     :param curr_job_args: (pov tester job to process, number of threads that could be used)
     :return: None
     """
-    CRSAPIWrapper.close_connection()
+    # CRSAPIWrapper.close_connection()
     CRSAPIWrapper.open_connection()
     curr_job = curr_job_args[0]
     num_threads = curr_job_args[1]

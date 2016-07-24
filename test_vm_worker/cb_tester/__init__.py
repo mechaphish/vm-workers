@@ -10,7 +10,7 @@ def process_cb_tester_job(job_args):
     :param job_args: Tuple (cb tester job, num process) to be tested.
     :return: None
     """
-    CRSAPIWrapper.close_connection()
+    # CRSAPIWrapper.close_connection()
     CRSAPIWrapper.open_connection()
     curr_cb_test_job = job_args[0]
     no_process = job_args[1]
