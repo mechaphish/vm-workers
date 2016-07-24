@@ -10,9 +10,9 @@ def process_cb_tester_job(job_args):
     :param job_args: Tuple (cb tester job, num process) to be tested.
     :return: None
     """
-    # CRSAPIWrapper.close_connection()
     CRSAPIWrapper.open_connection()
-    curr_cb_test_job = job_args[0]
+    job_id = job_args[0]
+    curr_cb_test_job = CRSAPIWrapper.get_cb_tester_job(job_id)
     no_process = job_args[1]
     curr_job_id = str(curr_cb_test_job.id)
     if curr_cb_test_job.try_start():
@@ -39,7 +39,7 @@ def process_cb_tester_job(job_args):
                 os.chmod(bin_path, 0o777)
 
             # Save IDS rules
-            if ids_rule is not None and ids_rule.rules is not None:
+            if ids_rule is not None and ids_rule.rules is not None and len(str(ids_rule.rules)) > 0:
                 ids_dir = os.path.join(target_dir, "ids_dir")
                 os.system('mkdir -p ' + ids_dir)
                 ids_rule_fp = os.path.join(ids_dir, "ids.rules")

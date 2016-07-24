@@ -4,6 +4,7 @@ load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 from farnsworth.models import NetworkPollSanitizerJob, CBTesterJob, PollCreatorJob, PovTesterJob, ChallengeSet, \
                               ValidPoll, CBPollPerformance, PovTestResult, TesterResult
 import farnsworth.config
+from common_utils.simple_logging import log_error
 
 
 class CRSAPIWrapper:
@@ -18,6 +19,52 @@ class CRSAPIWrapper:
     @staticmethod
     def close_connection():
         farnsworth.config.close_dbs()
+
+    @staticmethod
+    def _get_job_by_id(job_id, job_type):
+        """
+            Get provided job by ID
+        :param job_id: id of the job to get
+        :param job_type: Type of Job to get
+        :return: Job object
+        """
+        return job_type.get(job_type.id == job_id)
+
+    @staticmethod
+    def get_cb_tester_job(job_id):
+        """
+            Get cb tester job of the given id
+        :param job_id: Job id of job to fetch
+        :return: CBTesterJob
+        """
+        return CRSAPIWrapper._get_job_by_id(job_id, CBTesterJob)
+
+    @staticmethod
+    def get_pov_tester_job(job_id):
+        """
+            Get pov tester job of the given id
+        :param job_id: Job id of the job to fetch
+        :return: PovTesterJob
+        """
+        return CRSAPIWrapper._get_job_by_id(job_id, PovTesterJob)
+
+    @staticmethod
+    def get_poll_creator_job(job_id):
+        """
+            Get poll creator job of the given id
+        :param job_id: Job id of the job to fetch.
+        :return: PollCreatorJob
+        """
+        return CRSAPIWrapper._get_job_by_id(job_id, PollCreatorJob)
+
+    @staticmethod
+    def get_poll_sanitizer_job(job_id):
+        """
+            Get network poll sanitizer job of the given id
+        :param job_id: Job id of the job to fetch.
+        :return: NetworkPollSanitizerJob
+        """
+        return CRSAPIWrapper._get_job_by_id(job_id, NetworkPollSanitizerJob)
 
     @staticmethod
     def get_all_poll_sanitizer_jobs(target_cs_id=None):

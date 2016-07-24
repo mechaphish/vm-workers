@@ -53,7 +53,7 @@ class PatchTester(object):
     TSK_CLOCK_PERF_NAME = "task_clock"
     FILE_SIZE_PERF_NAME = "file_size"
     # To get nice median :)
-    NUM_TEST_TIME = 11
+    NUM_TEST_TIME = 5
 
     def __init__(self, bin_directory, poll_xml_path, ids_rule_fp, num_threads=1):
         """
