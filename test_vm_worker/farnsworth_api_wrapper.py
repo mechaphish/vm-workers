@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 from farnsworth.models import NetworkPollSanitizerJob, CBTesterJob, PollCreatorJob, PovTesterJob, ChallengeSet, \
-                              ValidPoll, CBPollPerformance, PovTestResult, TesterResult
+                              ValidPoll, CBPollPerformance, PovTestResult, TesterResult, PatchType
 import farnsworth.config
 from common_utils.simple_logging import log_error
 
@@ -172,8 +172,9 @@ class CRSAPIWrapper:
         if target_patch_type is None:
             return CRSAPIWrapper.get_unpatched_cbs(target_cs)
         patch_type_cbns = target_cs.cbns_by_patch_type()
-        if target_patch_type in patch_type_cbns:
-            return patch_type_cbns[target_patch_type]
+        for curr_patch_type in patch_type_cbns:
+            if curr_patch_type.name == target_patch_type:
+                return patch_type_cbns[curr_patch_type]
         return []
 
     @staticmethod
@@ -240,7 +241,8 @@ class CRSAPIWrapper:
         :param perf_json: performance json.
         :return: None
         """
-        CBPollPerformance.create(poll=target_poll, cs=target_cs, patch_type=patch_type, is_poll_ok=is_poll_ok,
+        patch_type_obj = PatchType.get(PatchType.name == patch_type)
+        CBPollPerformance.create(poll=target_poll, cs=target_cs, patch_type=patch_type_obj, is_poll_ok=is_poll_ok,
                                  performances=perf_json)
 
     @staticmethod
