@@ -241,7 +241,9 @@ class CRSAPIWrapper:
         :param perf_json: performance json.
         :return: None
         """
-        patch_type_obj = PatchType.get(PatchType.name == patch_type)
+        patch_type_obj = None
+        if patch_type is not None:
+            patch_type_obj = PatchType.get(PatchType.name == patch_type)
         CBPollPerformance.create(poll=target_poll, cs=target_cs, patch_type=patch_type_obj, is_poll_ok=is_poll_ok,
                                  performances=perf_json)
 
