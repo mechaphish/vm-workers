@@ -87,7 +87,7 @@ def _get_job_args(curr_pov_test_job):
         os.system('mkdir -p ' + str(ids_dir))
         ids_rules_obj = _get_ids_rules_obj(curr_pov_test_job.target_ids_fielding)
         # if we have non-empty ids rules?
-        if ids_rules_obj is not None and ids_rules_obj.rules is not None and len(ids_rules_obj.rules.strip()) > 0:
+        if ids_rules_obj is not None and ids_rules_obj.rules is not None and len(str(ids_rules_obj.rules).strip()) > 0:
             ids_file_path = os.path.join(ids_dir, str(curr_pov_test_job.id) + '_ids.rules')
             fp = open(ids_file_path, 'w')
             fp.write(str(ids_rules_obj.rules))

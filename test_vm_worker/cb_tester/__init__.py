@@ -40,7 +40,7 @@ def process_cb_tester_job(job_args):
                 os.chmod(bin_path, 0o777)
 
             # Save IDS rules
-            if ids_rule is not None and ids_rule.rules is not None and len(str(ids_rule.rules)) > 0:
+            if ids_rule is not None and ids_rule.rules is not None and len(str(ids_rule.rules).strip()) > 0:
                 ids_dir = os.path.join(target_dir, "ids_dir")
                 os.system('mkdir -p ' + ids_dir)
                 ids_rule_fp = os.path.join(ids_dir, "ids.rules")
