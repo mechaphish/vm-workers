@@ -24,6 +24,7 @@ def process_cb_tester_job(job_args):
             xml_dir = os.path.join(target_dir, "poll_xml")
             ids_rule_fp = None
             ids_rule = None
+            isbitflip = False
 
             os.system('mkdir -p ' + str(bin_dir))
             os.system('mkdir -p ' + str(xml_dir))
@@ -45,6 +46,7 @@ def process_cb_tester_job(job_args):
                 ids_rule_fp = os.path.join(ids_dir, "ids.rules")
                 fp = open(ids_rule_fp, "w")
                 fp.write(str(ids_rule.rules))
+                isbitflip = 'bitflip' in str(ids_rule.rules)
                 fp.close()
 
             # save the xml
@@ -54,7 +56,8 @@ def process_cb_tester_job(job_args):
             fp.close()
 
             # Test the poll
-            curr_patch_tester = PatchTester(bin_dir, xml_file_path, ids_rule_fp, num_threads=no_process)
+            curr_patch_tester = PatchTester(bin_dir, xml_file_path, ids_rule_fp, num_threads=no_process,
+                                            isbitflip=isbitflip)
             curr_patch_tester.test()
 
             # get all perfs if poll is ok.

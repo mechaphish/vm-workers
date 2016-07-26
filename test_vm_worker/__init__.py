@@ -4,7 +4,8 @@ from pov_tester import process_povtester_job
 from poll_creator import process_poll_creator_job
 from poll_sanitizer import process_sanitizer_job
 from cb_tester import process_cb_tester_job
-from multiprocessing import Pool, cpu_count
+from multiprocessing import cpu_count
+from concurrent.futures import ProcessPoolExecutor
 import time
 import sys
 
@@ -87,10 +88,8 @@ def run_daemon(arg_list):
                     log_info("Got " + str(len(available_jobs)) + " " + worker_name + " Jobs.")
                     child_threads = NO_OF_PROCESSES / len(available_jobs)
                     child_job_args = map(lambda curr_job: (curr_job.id, child_threads), available_jobs)
-                    process_pool = Pool(processes=NO_OF_PROCESSES)
-                    process_pool.map(job_processor, child_job_args)
-                    process_pool.close()
-                    process_pool.join()
+                    with ProcessPoolExecutor(max_workers=NO_OF_PROCESSES) as process_pool:
+                        process_pool.map(job_processor, child_job_args)
                     log_success("Processed " + str(len(available_jobs)) + " " + worker_name + " Jobs.")
                     no_jobs = False
                     # start again from beginning.
