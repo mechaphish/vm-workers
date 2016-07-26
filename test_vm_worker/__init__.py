@@ -83,8 +83,12 @@ def run_daemon(arg_list):
                 job_processor = curr_worker_config[2]
                 log_info("Trying to get " + worker_name + " Jobs.")
                 available_jobs = job_getter(target_cs_id=target_cs_id)
-                processed_jobs += len(available_jobs)
                 if len(available_jobs) > 0:
+                    num_jobs_to_get = max_num_jobs - processed_jobs
+                    if num_jobs_to_get <= 0:
+                        break
+                    available_jobs = available_jobs[0:num_jobs_to_get]
+                    processed_jobs += len(available_jobs)
                     log_info("Got " + str(len(available_jobs)) + " " + worker_name + " Jobs.")
                     child_threads = NO_OF_PROCESSES / len(available_jobs)
                     child_job_args = map(lambda curr_job: (curr_job.id, child_threads), available_jobs)
@@ -109,6 +113,7 @@ def run_daemon(arg_list):
             time.sleep(POLL_TIME)
         # if we processed sufficient number of jobs? then exit
         if processed_jobs >= max_num_jobs:
+            log_info("Processed:" + str(processed_jobs) + ", limit:" + str(max_num_jobs) + ". Exiting.")
             break
 
 if __name__ == "__main__":
