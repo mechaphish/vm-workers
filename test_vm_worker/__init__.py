@@ -90,6 +90,8 @@ def run_daemon(arg_list):
                     available_jobs = available_jobs[0:num_jobs_to_get]
                     processed_jobs += len(available_jobs)
                     log_info("Got " + str(len(available_jobs)) + " " + worker_name + " Jobs.")
+                    if str(worker_name) == 'pov_tester':
+                        NO_OF_PROCESSES = int(1.25 * NO_OF_PROCESSES)
                     child_threads = NO_OF_PROCESSES / len(available_jobs)
                     child_job_args = map(lambda curr_job: (curr_job.id, child_threads), available_jobs)
                     with ProcessPoolExecutor(max_workers=NO_OF_PROCESSES) as process_pool:
