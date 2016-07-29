@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 from farnsworth.models import NetworkPollSanitizerJob, CBTesterJob, PollCreatorJob, PovTesterJob, ChallengeSet, \
-                              ValidPoll, CBPollPerformance, PovTestResult, TesterResult, PatchType
+                              ValidPoll, CBPollPerformance, PovTestResult, TesterResult, PatchType, PovTestResult
 import farnsworth.config
 from common_utils.simple_logging import log_error
 
@@ -130,6 +130,16 @@ class CRSAPIWrapper:
         else:
             all_povtester_jobs = list(PovTesterJob.unstarted(cs=target_cs))
         return all_povtester_jobs
+
+    @staticmethod
+    def get_best_pov_result(cs_fielding_obj, ids_fielding_obj):
+        """
+            Get best available result for this CS fielding and ids fielding
+        :param cs_fielding_obj: CS fielding object
+        :param ids_fielding_obj: IDS fielding object.
+        :return: Best pov test result or None.
+        """
+        return PovTestResult.best(cs_fielding_obj, ids_fielding_obj)
 
     @staticmethod
     def get_binary_path(test_job):

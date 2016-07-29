@@ -103,6 +103,23 @@ def _get_job_args(curr_pov_test_job):
     return bin_dir, curr_work_dir, pov_file_path, ids_file_path
 
 
+def is_testing_not_required(pov_test_job):
+    """
+        Is testing required for the provided Pov Tester Job.
+    :param pov_test_job: Pov Tester job which needs to be checked.
+    :return: True/False: indicating whether testing is not required.
+    """
+    SUCCESS_THRESHOLD = 4
+    try:
+        curr_result = CRSAPIWrapper.get_best_pov_result(pov_test_job.target_cs_fielding,
+                                                        pov_test_job.target_ids_fielding)
+        return curr_result is not None and curr_result.num_success >= SUCCESS_THRESHOLD
+    except Exception as e:
+        log_error("Error occured while trying to get available results for pov tester job:" + str(pov_test_job.id) +
+                  ", Error:" + str(e))
+    return False
+
+
 def process_povtester_job(curr_job_args):
     """
         Process the provided PoV Tester Job with given number of threads.
@@ -117,42 +134,45 @@ def process_povtester_job(curr_job_args):
     job_id_str = str(curr_job.id)
 
     if target_job.try_start():
-        curr_work_dir = None
-        try:
-            job_bin_dir, curr_work_dir, pov_file_path, ids_rules_path = _get_job_args(curr_job)
-            job_id_str = str(curr_job.id)
-            log_info("Trying to run PovTesterJob:" + job_id_str)
-            all_child_process_args = []
+        if is_testing_not_required(curr_job):
+            log_success("Testing not required for PovTesterJob:" + str(job_id) + ", as a previous job obviated this.")
+        else:
+            curr_work_dir = None
+            try:
+                job_bin_dir, curr_work_dir, pov_file_path, ids_rules_path = _get_job_args(curr_job)
+                job_id_str = str(curr_job.id)
+                log_info("Trying to run PovTesterJob:" + job_id_str)
+                all_child_process_args = []
 
-            for i in range(NUM_THROWS):
-                all_child_process_args.append((job_bin_dir, pov_file_path, ids_rules_path))
+                for i in range(NUM_THROWS):
+                    all_child_process_args.append((job_bin_dir, pov_file_path, ids_rules_path))
 
-            log_info("Got:" + str(len(all_child_process_args)) + " Throws to test for PovTesterJob:" + job_id_str)
+                log_info("Got:" + str(len(all_child_process_args)) + " Throws to test for PovTesterJob:" + job_id_str)
 
-            all_results = []
-            # If we can multiprocess? Run in multi-threaded mode
-            if num_threads > 1:
-                log_info("Running in multi-threaded mode with:" + str(num_threads) + " threads. For PovTesterJob:" +
-                         job_id_str)
-                thread_pool = ThreadPool(processes=num_threads)
-                all_results = thread_pool.map(_test_pov, all_child_process_args)
-                thread_pool.close()
-                thread_pool.join()
-            else:
-                log_info("Running in single threaded mode. For PovTesterJob:" +
-                         job_id_str)
-                for curr_child_arg in all_child_process_args:
-                    all_results.append(_test_pov(curr_child_arg))
+                all_results = []
+                # If we can multiprocess? Run in multi-threaded mode
+                if num_threads > 1:
+                    log_info("Running in multi-threaded mode with:" + str(num_threads) + " threads. For PovTesterJob:" +
+                             job_id_str)
+                    thread_pool = ThreadPool(processes=num_threads)
+                    all_results = thread_pool.map(_test_pov, all_child_process_args)
+                    thread_pool.close()
+                    thread_pool.join()
+                else:
+                    log_info("Running in single threaded mode. For PovTesterJob:" +
+                             job_id_str)
+                    for curr_child_arg in all_child_process_args:
+                        all_results.append(_test_pov(curr_child_arg))
 
-            throws_passed = len(filter(lambda x: x, all_results))
-            CRSAPIWrapper.create_pov_test_result(curr_job.target_exploit, curr_job.target_cs_fielding,
-                                                 curr_job.target_ids_fielding, throws_passed)
-            log_success("Done Processing PovTesterJob:" + job_id_str)
-        except Exception as e:
-            log_error("Error Occured while processing PovTesterJob:" + job_id_str + ". Error:" + str(e))
-        # clean up
-        if curr_work_dir is not None:
-            os.system('rm -rf ' + curr_work_dir)
+                throws_passed = len(filter(lambda x: x, all_results))
+                CRSAPIWrapper.create_pov_test_result(curr_job.target_exploit, curr_job.target_cs_fielding,
+                                                     curr_job.target_ids_fielding, throws_passed)
+                log_success("Done Processing PovTesterJob:" + job_id_str)
+            except Exception as e:
+                log_error("Error Occured while processing PovTesterJob:" + job_id_str + ". Error:" + str(e))
+            # clean up
+            if curr_work_dir is not None:
+                os.system('rm -rf ' + curr_work_dir)
         target_job.completed()
     else:
         log_failure("Ignoring PovTesterJob:" + job_id_str + " as we failed to mark it busy.")
