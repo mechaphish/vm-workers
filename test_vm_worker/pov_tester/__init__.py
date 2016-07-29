@@ -1,8 +1,10 @@
 from ..farnsworth_api_wrapper import CRSAPIWrapper
+from farnsworth.models import Exploit
 from common_utils.binary_tester import BinaryTester
 from multiprocessing.dummy import Pool as ThreadPool
 from common_utils.simple_logging import log_info, log_success, log_failure, log_error
 import os
+import compilerex
 NUM_THROWS = 12
 
 
@@ -177,3 +179,40 @@ def process_povtester_job(curr_job_args):
     else:
         log_failure("Ignoring PovTesterJob:" + job_id_str + " as we failed to mark it busy.")
     CRSAPIWrapper.close_connection()
+
+
+def _fixup_exploit(exploit, register):
+    """
+    :param exploit: the peewee exploit object (should be type 1 only)
+    :param register: the register we are actually setting
+    :return: the new exploit object or None if we shouldn't create one
+    """
+    # make compilerex executable
+    bin_path = os.path.join(os.path.dirname(compilerex.__file__), "../bin")
+    for f in os.listdir(bin_path):
+        os.chmod(os.path.join(bin_path, f), 0777)
+        os.chmod(os.path.join(bin_path, f), 0777)
+
+    c_code = str(exploit.c_code)
+    if c_code.startswith("//FIXED"):
+        return None
+
+    fixed_lines = ["//FIXED"]
+    for line in c_code.split("\n"):
+        # fix the line which sets the regnum
+        if "enum register_t regnum" in line:
+            fixed_lines.append("  enum register_t regnum = %s;" % register)
+        else:
+            fixed_lines.append(line)
+    new_c = "\n".join(fixed_lines)
+
+    compiled_blob = compilerex.compile_from_string(new_c)
+
+    # we keep the reliability at 0.0, however the tester needs to make sure to mark
+    # this exploit good for this fielding
+    e = Exploit.create(cs=exploit.cs, job=exploit.job, pov_type='type1',
+                       method=exploit.method, c_code=new_c,
+                       blob=compiled_blob, crash=exploit.crash)
+
+    e.save()
+    return e
