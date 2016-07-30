@@ -1,6 +1,7 @@
 from ..farnsworth_api_wrapper import CRSAPIWrapper
 from farnsworth.models import Exploit
 from common_utils.binary_tester import BinaryTester
+import collections
 from multiprocessing.dummy import Pool as ThreadPool
 from common_utils.simple_logging import log_info, log_success, log_failure, log_error
 import os
@@ -18,8 +19,8 @@ def _test_pov(thread_arg):
     pov_file = thread_arg[1]
     ids_rules = thread_arg[2]
     bin_tester = BinaryTester(bin_folder, pov_file, is_pov=True, is_cfe=True, standalone=True, ids_rules=ids_rules)
-    ret_code, _, _ = bin_tester.test_cb_binary()
-    return ret_code == 0
+    ret_code, stdout_txt, stderr_txt = bin_tester.test_cb_binary()
+    return ret_code == 0, stdout_txt, stderr_txt
 
 
 def _get_all_cbns(cs_fielded_obj):
@@ -166,7 +167,23 @@ def process_povtester_job(curr_job_args):
                     for curr_child_arg in all_child_process_args:
                         all_results.append(_test_pov(curr_child_arg))
 
-                throws_passed = len(filter(lambda x: x, all_results))
+                throws_passed = len(filter(lambda x: x[0], all_results))
+                # if none of the throws passed, lets see if we can create new exploit?
+                if throws_passed == 0:
+                    log_info("Exploit is bad. Trying to create new exploit by replacing most common register.")
+                    all_regs = collections.defaultdict(int)
+                    for _,curr_output,_ in all_results:
+                        curr_exploit_reg = _get_exploit_register(curr_output)
+                        if curr_exploit_reg is not None:
+                            all_regs[curr_exploit_reg] += 1
+                    if len(all_regs) > 0:
+                        log_info("Got:" + str(len(all_regs)) + " possible registers")
+                        target_reg = sorted(all_regs.items(), key=lambda x: x[1], reverse=True)[0][0]
+                        log_success("Using:" + target_reg + " to create a new exploit")
+                        _fixup_exploit(curr_job.target_exploit, target_reg)
+                    else:
+                        log_failure("Could not get any register from cb-test output")
+
                 CRSAPIWrapper.create_pov_test_result(curr_job.target_exploit, curr_job.target_cs_fielding,
                                                      curr_job.target_ids_fielding, throws_passed)
                 log_success("Done Processing PovTesterJob:" + job_id_str)
@@ -179,6 +196,27 @@ def process_povtester_job(curr_job_args):
     else:
         log_failure("Ignoring PovTesterJob:" + job_id_str + " as we failed to mark it busy.")
     CRSAPIWrapper.close_connection()
+
+
+def _get_exploit_register(stdout_txt):
+    """
+        get exploit register from output of cb-test
+    :param stdout_txt: output from cb-test
+    :return: correct register name or none ( on error)
+    """
+    magic_token = 'incorrect reg - should set'
+    exploit_reg = None
+    try:
+        if stdout_txt is not None:
+            stdout_txt = str(stdout_txt).strip()
+            all_lines = stdout_txt.split('\n')
+            for curr_line in all_lines:
+                if magic_token in curr_line:
+                    exploit_reg = curr_line.split(magic_token)[1].strip()
+                    break
+    except Exception as e:
+        log_error("Error occurred while trying to get correct register from cb-test output:" + str(e))
+    return exploit_reg
 
 
 def _fixup_exploit(exploit, register):
