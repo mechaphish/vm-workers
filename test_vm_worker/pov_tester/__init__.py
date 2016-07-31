@@ -6,7 +6,7 @@ from multiprocessing.dummy import Pool as ThreadPool
 from common_utils.simple_logging import log_info, log_success, log_failure, log_error
 import os
 import compilerex
-NUM_THROWS = 12
+NUM_THROWS = 10
 
 
 def _test_pov(thread_arg):
