@@ -6,5 +6,5 @@ setup(
       packages=['test_vm_worker'],
       scripts=['bin/common_tester'],
       description='Repo that contains components that need to run inside CGC VM.',
-      url='https://git.seclab.cs.ucsb.edu:cgc/vm-workers',
+      url='https://github.com/mechaphish/vm-workers',
 )
